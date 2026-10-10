@@ -249,9 +249,18 @@ def download_vlm():
         warn(f"Download failed: {e}")
         print("  Will download on first detection instead.")
 
+def hf_repo_cache_dir(model_id):
+    """Local HF cache dir — mirrors app.core.config.hf_repo_cache_dir."""
+    hub_cache = os.environ.get("HF_HUB_CACHE")
+    if hub_cache:
+        base = Path(hub_cache)
+    else:
+        base = Path(os.environ.get("HF_HOME", Path.home() / ".cache" / "huggingface")) / "hub"
+    return base / f"models--{model_id.replace('/', '--')}"
+
 def download_sam2():
     step("SAM2 model (facebook/sam2.1-hiera-base-plus, ~2.4GB)...")
-    cache_dir = Path.home() / ".cache" / "huggingface" / "hub" / "models--facebook--sam2.1-hiera-base-plus"
+    cache_dir = hf_repo_cache_dir(SAM2_MODEL_ID)
     if cache_dir.exists() and any(cache_dir.rglob("sam2.1_hiera_base_plus.pt")):
         ok("already cached")
         return

@@ -188,14 +188,13 @@ def check_sam3_token():
     step("Checking SAM3 model access...")
 
     # Check if HF_TOKEN is already set
-    env_file = BACKEND / ".env"
-    if env_file.exists():
-        content = env_file.read_text()
-        if "HF_TOKEN" in content and "HF_TOKEN=" in content:
-            val = content.split("HF_TOKEN=")[-1].split("\n")[0].strip()
-            if val and val != "${HF_TOKEN:-}":
-                ok("HF_TOKEN configured")
-                return True
+    if os.environ.get("HF_TOKEN"):
+        ok("HF_TOKEN configured")
+        return True
+
+    if hf_repo_cache_dir("facebook/sam3").exists():
+        ok("SAM3 model already cached")
+        return True
 
     print(f"\n  {yellow('SAM3 requires a HuggingFace access token.')}")
     print("  To use SAM3 text-driven detection + segmentation:")
@@ -203,8 +202,9 @@ def check_sam3_token():
     print(f"  1. Visit {cyan('https://huggingface.co/facebook/sam3')}")
     print("     Click \"Agree and access repository\"")
     print(f"  2. Create a Read token at {cyan('https://huggingface.co/settings/tokens')}")
-    print(f"  3. Set it in {cyan('backend/.env')}:")
-    print("       HF_TOKEN=hf_your_token_here")
+    print("  3. Set it as an environment variable:")
+    print(f"       Windows:     {cyan('setx HF_TOKEN hf_your_token_here')}")
+    print(f"       Linux/macOS: {cyan('export HF_TOKEN=hf_your_token_here')}")
     print()
     print(f"  {yellow('Skip this step if you only use VLM+SAM2 mode.')}")
     return False
